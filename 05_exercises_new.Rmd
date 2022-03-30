@@ -34,6 +34,7 @@ library(transformr)    # for "tweening" (gganimate)
 library(gifski)        # need the library for creating gifs but don't need to load each time
 library(shiny)         # for creating interactive apps
 library(flair)
+library(ggthemes)      # for more themes (including theme_map())
 theme_set(theme_minimal())
 ```
 
@@ -101,12 +102,8 @@ new_top_10 <- top_10 %>%
   mutate(year = as.numeric(year)) %>% #turns string for year into numeric data. 
   group_by(Breed) 
 
-new_top_10
-```
-
-
-```{r dog1, eval = FALSE, echo = FALSE}
-ggplot(new_top_10, aes(x = year, y = rank, group = Breed)) +
+top10 <- new_top_10 %>%
+  ggplot(aes(x = year, y = rank, group = Breed)) +
   geom_line(aes(color = fct_reorder2(Breed, year, rank), alpha = 1), size = 2) +
   geom_point(aes(color = fct_reorder2(Breed, year, rank), alpha = 1), size = 4) +
   #scale_y_continuous(breaks = 1:nrow(new_top_10)) +
@@ -116,33 +113,15 @@ ggplot(new_top_10, aes(x = year, y = rank, group = Breed)) +
   labs(title = "Current Top 10 Dog Breeds Since 2016", 
        x = "Year", 
        y = "Ranking", 
-       color = "Breeds") +
-  transition_reveal(year) +
-  shadow_wake(wake_length = .3) +
-  exit_fade()
+       color = "Breeds")
+
+top10
 ```
 
-```{r, echo=FALSE}
-decorate_chunk("dog1", eval=FALSE) %>% 
-  flair('legend.position = "none"') %>% 
-  flair("shadow_wake(wake_length = .3)") %>% 
-  flair("exit_fade()") %>%
-  flair("geom_text(aes(label = Breed))") %>% 
-  flair('subtitle = "Date: {frame_along}"') %>%
-  knit_print.with_flair()
-
+```{r}
+ggplotly(top10)
 ```
 
-```{r, eval=FALSE, echo=FALSE}
-anim_save("dog1.gif")
-```
-  
-```{r, echo=FALSE}
-knitr::include_graphics("dog1.gif")
-```  
-  
-  
-  
 ```{r}
 #COVID-19 data from the New York Times
 covid19 <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv")
@@ -150,7 +129,7 @@ covid19 <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/mas
 
 
 ```{r covid1, eval = FALSE, echo = FALSE}
-covid19 %>% 
+covid <- covid19 %>% 
   filter(state %in% c("Minnesota", "Wisconsin", "Iowa", "North Dakota", "South Dakota")) %>%
   ggplot(aes(x=date, y=cases, color=state)) +
   geom_line() +
@@ -159,27 +138,13 @@ covid19 %>%
        y = "Cumulative Cases") +
     theme(plot.background = element_rect(fill = "snow1"),
         text = element_text(family = "Times")) +
-    scale_y_continuous(labels = scales :: comma) +
-    transition_reveal(date) +
-    exit_fade()
+    scale_y_continuous(labels = scales :: comma)
 ```
 
-```{r, echo=FALSE}
-decorate_chunk("covid1", eval=FALSE) %>% 
-  flair('legend.position = "none"') %>% 
-  flair("exit_fade()") %>%
-  flair("geom_text(aes(label = state))") %>% 
-  flair('subtitle = "Date: {frame_along}"') %>%
-  knit_print.with_flair()
+```{r}
+ggplotly(covid)
 ```
 
-```{r, eval=FALSE, echo=FALSE}
-anim_save("covid1.gif")
-```
-  
-```{r, echo=FALSE}
-knitr::include_graphics("covid1.gif")
-```  
  
   2. Use animation to tell an interesting story with the `small_trains` dataset that contains data from the SNCF (National Society of French Railways). These are Tidy Tuesday data! Read more about it [here](https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-02-26).
 
@@ -220,7 +185,28 @@ garden_harvest %>%
   * Show the time in the subtitle.  
   * CHALLENGE: use the `ggimage` package and `geom_image` to add a bike image instead of a red point. You can use [this](https://raw.githubusercontent.com/llendway/animation_and_interactivity/master/bike.png) image. See [here](https://goodekat.github.io/presentations/2019-isugg-gganimate-spooky/slides.html#35) for an example. 
   * Add something of your own! And comment on if you prefer this to the static map and why or why not.
-  
+
+```{r}
+# Lisa's Mallorca cycling data
+mallorca_bike_day7 <- read_csv("https://www.dropbox.com/s/zc6jan4ltmjtvy0/mallorca_bike_day7.csv?dl=1") %>% 
+  select(1:4, speed)
+```
+
+```{r}
+mallorca_map <- get_stamenmap(
+    bbox = c(left = 2.2902, bottom = 39.4498, right = 2.8595, top = 39.7814), 
+    maptype = "terrain",
+    zoom = 11
+)
+ggmap(mallorca_map) +
+  geom_path(data = mallorca_bike_day7, 
+             aes(x = lon, y = lat, color = ele),
+             size = .5) +
+  scale_color_viridis_c(option = "magma") +
+  theme_map() +
+  theme(legend.background = element_blank())
+```
+
   5. In this exercise, you get to meet Lisa's sister, Heather! She is a proud Mac grad, currently works as a Data Scientist where she uses R everyday, and for a few years (while still holding a full-time job) she was a pro triathlete. You are going to map one of her races. The data from each discipline of the Ironman 70.3 Pan Am championships, Panama is in a separate file - `panama_swim`, `panama_bike`, and `panama_run`. Create a similar map to the one you created with my cycling data. You will need to make some small changes: 1. combine the files putting them in swim, bike, run order (HINT: `bind_rows()`), 2. make the leading dot a different color depending on the event (for an extra challenge, make it a different image using `geom_image()!), 3. CHALLENGE (optional): color by speed, which you will need to compute on your own from the data. You can read Heather's race report [here](https://heatherlendway.com/2016/02/10/ironman-70-3-pan-american-championships-panama-race-report/). She is also in the Macalester Athletics [Hall of Fame](https://athletics.macalester.edu/honors/hall-of-fame/heather-lendway/184) and still has records at the pool. 
   
 ```{r}
@@ -244,6 +230,39 @@ census_pop_est_2018 <- read_csv("https://www.dropbox.com/s/6txwv3b4ng7pepe/us_ce
   mutate(state = str_to_lower(state))
 
 states_map <- map_data("state")
+
+
+covid19_state <- covid19 %>%
+  group_by(state) %>%
+  arrange(desc(date)) %>%
+  #mutate(cases = as.character(cases)) %>%
+  mutate(cases = as.integer(cases)) %>%
+  mutate(state = tolower(state)) %>%
+  slice(1) 
+
+covid19_10000 <- #creates new dataset 
+  covid19_state %>% 
+  left_join(census_pop_est_2018,
+            by = c("state"))   #joins starbucks_us_by_state dataset with the census_pop dataset. since the starbucks_us dataset calls the state variable "state_name" and the census dataset calls the state variable "state", the by line matches those two variables to the same one. 
+  #mutate(starbucks_per_10000 = (n/est_pop_2018)*10000) #creates variable to show the number of Starbucks per 10,000 people per state
+
+
+filter_time(covid19_10000, 'end' ~ '15')
+  
+
+covid19_10000 %>% 
+  ggplot() +
+  geom_map(map = states_map,
+           aes(map_id = state,
+               fill = cases/est_pop_2018*10000)) +
+  expand_limits(x = states_map$long, y = states_map$lat) + 
+  #scale_fill_viridis_c(option = "plasma") +
+  theme_map() +
+  labs(title = "Cumulative COVID Cases per 10,000 people",
+       subtitle = "March 29, 2022",
+       fill = "Cases per 10,000 People",
+       caption = "Plot created by Anna Leidner")
+
 ```
 
 ## Your first `shiny` app (for next week!)
@@ -255,6 +274,8 @@ Put the link to your app here:
 ## GitHub link
 
   8. Below, provide a link to your GitHub repo with this set of Weekly Exercises. 
+  
+[GitHub Link Exercise 5](https://github.com/aleidner6/Exercise5/blob/main/05_exercises_new.md)
 
 
 **DID YOU REMEMBER TO UNCOMMENT THE OPTIONS AT THE TOP?**
