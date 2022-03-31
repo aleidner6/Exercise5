@@ -115,12 +115,9 @@ top10 <- new_top_10 %>%
        y = "Ranking", 
        color = "Breeds")
 
-top10
-```
-
-```{r}
 ggplotly(top10)
 ```
+
 
 ```{r}
 #COVID-19 data from the New York Times
@@ -144,12 +141,23 @@ covid <- covid19 %>%
 ```{r}
 ggplotly(covid)
 ```
-
  
   2. Use animation to tell an interesting story with the `small_trains` dataset that contains data from the SNCF (National Society of French Railways). These are Tidy Tuesday data! Read more about it [here](https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-02-26).
 
 ```{r}
-
+small_trains %>%
+  filter(year == "2017") %>%
+  filter(departure_station == "SAINT ETIENNE CHATEAUCREUX") %>%
+  
+  #group_by(departure_station) %>%
+  ggplot(aes(y = month, 
+             x = total_num_trips, 
+             color = )) +
+  geom_jitter() +
+  labs(title = "Total trips from Saint Etienne Station in 2017",
+       y = "Month",
+       x = "total trips") 
+  #transition_states(departure_station)
 ```
 
 ## Garden data
@@ -162,7 +170,7 @@ ggplotly(covid)
 
 I have started the code for you below. The `complete()` function creates a row for all unique `date`/`variety` combinations. If a variety is not harvested on one of the harvest dates in the dataset, it is filled with a value of 0.
 
-```{r}
+```{r veg1, eval=FALSE, echo=FALSE}
 garden_harvest %>% 
   filter(vegetable == "tomatoes") %>% 
   group_by(date, variety) %>% 
@@ -170,10 +178,33 @@ garden_harvest %>%
   ungroup() %>% 
   complete(variety, 
            date, 
-           fill = list(daily_harvest_lb = 0))
+           fill = list(daily_harvest_lb = 0)) %>%
+  group_by(variety) %>%
+  mutate(cum_harvest_lb = cumsum(daily_harvest_lb)) %>%
+  ggplot(aes(y = cum_harvest_lb, 
+             x = date, 
+             fill = variety)) +
+  geom_area() +
+  labs(title = "Cumulative Tomato Harvest by Variety", 
+       x = "Date", 
+       y = "Cumulative Harvest (lbs)") +
+  transition_reveal(date)
+  
 ```
 
 
+```{r, echo=FALSE}
+decorate_chunk("veg1", eval=FALSE) %>% 
+  flair("transition_time(date)")
+```
+
+```{r, eval=FALSE, echo=FALSE}
+anim_save("veg1.gif")
+```
+
+```{r, echo=FALSE}
+knitr::include_graphics("veg1.gif")
+```
 ## Maps, animation, and movement!
 
   4. Map Lisa's `mallorca_bike_day7` bike ride using animation! 
@@ -199,10 +230,22 @@ mallorca_map <- get_stamenmap(
     zoom = 11
 )
 ggmap(mallorca_map) +
+  geom_point(data = mallorca_bike_day7, 
+             aes(x = lon, 
+                 y = lat), 
+             size = 5,
+             color = "red") +
   geom_path(data = mallorca_bike_day7, 
-             aes(x = lon, y = lat, color = ele),
+             aes(x = lon,
+                 y = lat, 
+                 color = ele),
              size = .5) +
   scale_color_viridis_c(option = "magma") +
+  labs(title = "Mallorca Bike Ride", 
+       subtitle = "Time: {frame_along}", 
+       x = "", 
+       y = "") +
+  transition_reveal(time) +
   theme_map() +
   theme(legend.background = element_blank())
 ```
@@ -234,6 +277,7 @@ states_map <- map_data("state")
 
 covid19_state <- covid19 %>%
   group_by(state) %>%
+  
   arrange(desc(date)) %>%
   #mutate(cases = as.character(cases)) %>%
   mutate(cases = as.integer(cases)) %>%
@@ -247,7 +291,7 @@ covid19_10000 <- #creates new dataset
   #mutate(starbucks_per_10000 = (n/est_pop_2018)*10000) #creates variable to show the number of Starbucks per 10,000 people per state
 
 
-filter_time(covid19_10000, 'end' ~ '15')
+#filter_time(covid19_10000, 'end' ~ '15')
   
 
 covid19_10000 %>% 
