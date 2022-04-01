@@ -12,7 +12,7 @@ output:
 
 
 ```{r setup, include=FALSE}
-#knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
 ```
 
 
@@ -197,11 +197,13 @@ garden_harvest %>%
   mutate(cum_harvest_lb = cumsum(daily_harvest_lb)) %>%
   ggplot(aes(y = cum_harvest_lb, 
              x = date, 
-             fill = variety)) +
+             fill = fct_reorder(variety, cum_harvest_lb, .fun = max, .desc = FALSE))) +
   geom_area() +
+  geom_text(aes(label = variety), position = "stack") +
   labs(title = "Cumulative Tomato Harvest by Variety", 
        x = "Date", 
        y = "Cumulative Harvest (lbs)") +
+  theme(legend.position = "none") +
   transition_reveal(date)
   
 ```
@@ -214,6 +216,8 @@ anim_save("veg1.gif")
 ```{r, echo=FALSE}
 knitr::include_graphics("veg1.gif")
 ```
+
+
 ## Maps, animation, and movement!
 
   4. Map Lisa's `mallorca_bike_day7` bike ride using animation! 
@@ -267,6 +271,8 @@ anim_save("mallorca.gif")
 ```{r, echo=FALSE}
 knitr::include_graphics("mallorca.gif")
 ```
+ 
+ 
  5. In this exercise, you get to meet Lisa's sister, Heather! She is a proud Mac grad, currently works as a Data Scientist where she uses R everyday, and for a few years (while still holding a full-time job) she was a pro triathlete. You are going to map one of her races. The data from each discipline of the Ironman 70.3 Pan Am championships, Panama is in a separate file - `panama_swim`, `panama_bike`, and `panama_run`. Create a similar map to the one you created with my cycling data. You will need to make some small changes: 1. combine the files putting them in swim, bike, run order (HINT: `bind_rows()`), 2. make the leading dot a different color depending on the event (for an extra challenge, make it a different image using `geom_image()!), 3. CHALLENGE (optional): color by speed, which you will need to compute on your own from the data. You can read Heather's race report [here](https://heatherlendway.com/2016/02/10/ironman-70-3-pan-american-championships-panama-race-report/). She is also in the Macalester Athletics [Hall of Fame](https://athletics.macalester.edu/honors/hall-of-fame/heather-lendway/184) and still has records at the pool. 
   
 ```{r tri, eval=FALSE, echo=FALSE}
@@ -340,9 +346,6 @@ covid19_10000 <- #creates new dataset
   left_join(census_pop_est_2018,
             by = c("state"))   #joins starbucks_us_by_state dataset with the census_pop dataset. since the starbucks_us dataset calls the state variable "state_name" and the census dataset calls the state variable "state", the by line matches those two variables to the same one. 
   #mutate(starbucks_per_10000 = (n/est_pop_2018)*10000) #creates variable to show the number of Starbucks per 10,000 people per state
-
-
-#filter_time(covid19_10000, 'end' ~ '15')
   
 covid19_10000 %>% 
   mutate(cases_10000 = cases/est_pop_2018*10000) %>%
@@ -377,26 +380,8 @@ knitr::include_graphics("covid19.gif")
 
   7. This app will also use the COVID data. Make sure you load that data and all the libraries you need in the `app.R` file you create. You should create a new project for the app, separate from the homework project. Below, you will post a link to the app that you publish on shinyapps.io. You will create an app to compare states' daily number of COVID cases per 100,000 over time. The x-axis will be date. You will have an input box where the user can choose which states to compare (`selectInput()`), a slider where the user can choose the date range, and a submit button to click once the user has chosen all states they're interested in comparing. The graph should display a different line for each state, with labels either on the graph or in a legend. Color can be used if needed. 
   
-```{r}
-#practicing to see if I can even get it to work
 
-covid19 %>%
-  mutate(state = str_to_lower(state)) %>%
-  left_join(census_pop_est_2018,
-            by = c("state")) %>%
-  group_by(state) %>%
-  mutate(lag_cases = lag(cases, 1, replace_na(0))) %>%
-  mutate(new_cases = cases - lag_cases) %>% #number of new cases each day.
-  mutate(daily_1 = new_cases/est_pop_2018*100000) %>%
-  ggplot(aes(x = date, 
-             y = daily_1)) +
-  geom_line() +
-  labs(title = "States' Daily COVID cases per 100,000", 
-       x = "Date", 
-       y = "Daily COVID Cases per 100,000")
-```
-
-Put the link to your app here: 
+Put the link to your app here: [Shiny App](https://aleid6.shinyapps.io/COVIDCases/)
   
 ## GitHub link
 
