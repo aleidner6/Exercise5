@@ -387,7 +387,7 @@ Put the link to your app here: [Shiny App](https://aleid6.shinyapps.io/COVIDCase
 
   8. Below, provide a link to your GitHub repo with this set of Weekly Exercises. 
   
-[GitHub Link Exercise 5](https://github.com/aleidner6/Exercise5/blob/main/05_exercises_new.md)
+[GitHub Link Exercise 5](https://github.com/aleidner6/Exercise5/blob/main/ex-5-draft.md)
 
 
 **DID YOU REMEMBER TO UNCOMMENT THE OPTIONS AT THE TOP?**
