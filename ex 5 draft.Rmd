@@ -347,7 +347,7 @@ covid19_10000 <- #creates new dataset
             by = c("state"))   #joins starbucks_us_by_state dataset with the census_pop dataset. since the starbucks_us dataset calls the state variable "state_name" and the census dataset calls the state variable "state", the by line matches those two variables to the same one. 
   #mutate(starbucks_per_10000 = (n/est_pop_2018)*10000) #creates variable to show the number of Starbucks per 10,000 people per state
   
-covid19_10000 %>% 
+animcovid <- covid19_10000 %>% 
   mutate(cases_10000 = cases/est_pop_2018*10000) %>%
   group_by(state) %>%
   mutate(day = day(date)) %>%
@@ -364,6 +364,8 @@ covid19_10000 %>%
        fill = "Cases per 10,000 People",
        caption = "Plot created by Anna Leidner") +
   transition_reveal(date)
+
+animate(animcovid, nframes = 200, end_pause = 10)
 
 ```
 
